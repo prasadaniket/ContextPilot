@@ -14,6 +14,22 @@ Every message you send to Claude makes it re-read the *entire* conversation from
 
 ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**. It uses Anthropic's API locally to compress exchanges into ~70 token nodes, storing them in IndexedDB. When you chat, it injects only the most relevant nodes.
 
+```mermaid
+graph TD
+    A[User types prompt] --> B{ContextPilot Intercepts}
+    B -->|Original payload| C[Extract full chat history]
+    C --> D[Retrieve stored nodes from IndexedDB]
+    D --> E[Score nodes via TF-IDF]
+    E --> F[Inject top 2 nodes as Context]
+    F --> G[Lean Payload sent to Claude API]
+    G --> H[Claude responds]
+    H --> I[Watch SSE Stream]
+    I --> J[Send user+assistant exchange to Anthropic API]
+    J --> K[Compress to ~70 tokens]
+    K --> L[(Store new node in IndexedDB)]
+```
+
+**Token Usage Comparison:**
 ```
 Every message WITHOUT ContextPilot:
 [Msg 1][Msg 2][Msg 3][Msg 4][Msg 5][Msg 6] + New prompt = ~5,000 tokens 🔴
@@ -22,23 +38,6 @@ Every message WITH ContextPilot:
 [P3 summary 68tk][P6 summary 72tk] + New prompt = ~200 tokens ✅
 
 Savings: 96%
-```
-
-### How the Context Tree Grows
-
-```mermaid
-graph TD
-    classDef node fill:#1D9E75,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef active fill:#534AB7,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef prompt fill:#BA7517,stroke:#fff,stroke-width:2px,color:#fff;
-
-    A[Node 1: User asks for React setup]:::node --> B[Node 2: Claude provides Vite template]:::node
-    B --> C[Node 3: User asks about routing]:::active
-    C --> D[Node 4: Claude explains React Router]:::node
-    D --> E[Node 5: User asks for Auth integration]:::active
-    
-    E -. "TF-IDF matching extracts\nmost relevant nodes" .-> F((Current Prompt:\n"How do I protect the route?")):::prompt
-    C -. "Injects Node 3" .-> F
 ```
 
 ---
@@ -107,35 +106,41 @@ Type any of these commands directly into the Claude chat box. They are intercept
 
 ContextPilot is built upon 4 architectural layers, combining 4 open-source approaches into one extension:
 
+```mermaid
+graph LR
+    subgraph Browser["Chrome Browser (claude.ai)"]
+        direction TB
+        UI["claude-counter HUD<br/>(Token Display)"]
+        CMD["Slash Commands<br/>(Chat Intercept)"]
+        D3["code-review-graph<br/>(Live D3 Tree)"]
+    end
+
+    subgraph Background["ContextPilot Service Worker"]
+        direction TB
+        COMP["Context Builder<br/>(Payload Injection)"]
+        TFIDF["Keyword Extractor<br/>(TF-IDF Scoring)"]
+        STORE[(IndexedDB Tree Store)]
+    end
+
+    subgraph APIs["External APIs"]
+        direction TB
+        CLAUDE["Claude API<br/>(Chat responses)"]
+        ANTHROPIC["Anthropic API<br/>(Haiku Compression)"]
+    end
+
+    Browser -- "Fetch Intercept" --> Background
+    Background <--> STORE
+    Background -- "Lean Payload" --> CLAUDE
+    Background -- "Raw Exchange" --> ANTHROPIC
+    ANTHROPIC -- "Compressed Summary" --> Background
+```
+
 | Layer | Source | What it does |
 |---|---|---|
 | **Display** | claude-counter (she-llac) | Live HUD for tokens, session/weekly bars, cache timer. |
 | **Commands** | get-shit-done pattern | Local `/cp` slash commands intercepted from chat input. |
 | **Compression** | ContextPilot original | Fetch intercept, lean payload injection, background compression. |
 | **Graph panel** | code-review-graph (tirth8205)| D3.js sidebar visualizing the live prompt tree. |
-
-### System Architecture Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User (claude.ai)
-    participant C as Content Script
-    participant B as Background Worker
-    participant A as Anthropic API
-    participant DB as IndexedDB
-
-    U->>C: Types message & hits Send
-    C->>B: Intercept fetch, ask for lean context
-    B->>DB: Query context tree & TF-IDF match
-    DB-->>B: Return top 2 nodes
-    B-->>C: Inject lean payload
-    C->>A: Send request (~200 tokens)
-    A-->>U: Claude responds (SSE Stream)
-    C->>B: Stream done, compress exchange
-    B->>A: Send raw exchange for summarization
-    A-->>B: Return ~70 token summary
-    B->>DB: Save new node to tree
-```
 
 ---
 
