@@ -3,15 +3,6 @@
  * --------------------------------
  * D3.js sidebar panel (code-review-graph pattern).
  *
- * Sources:
- *   Display layer adapted from claude-counter by she-llac (MIT)
- *   https://github.com/she-llac/claude-counter
- *
- *   Command pattern adapted from get-shit-done by gsd-build (MIT)
- *   https://github.com/gsd-build/get-shit-done
- *
- *   Graph visualization adapted from code-review-graph by tirth8205 (MIT)
- *   https://github.com/tirth8205/code-review-graph
  *
  * GitHub: https://github.com/prasadaniket/ContextPilot
  */

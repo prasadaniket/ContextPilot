@@ -1,20 +1,39 @@
-# ContextPilot v1.0.0
+<div align="center">
+  <img src="icons/icon128.png" alt="ContextPilot Logo" width="128"/>
+  <h1>ContextPilot</h1>
+  <p><strong>One extension to rule your Claude token limits.</strong></p>
+  
+  [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
+  [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
+  [![Chrome](https://img.shields.io/badge/browser-Chrome-orange.svg)]()
+</div>
 
-**One extension to rule your Claude token limits**
+<br />
 
-ContextPilot is a Chrome Extension for claude.ai that solves the token limit wall by compressing your chat history locally, giving you infinite conversation memory without burning through your hourly limits.
+ContextPilot is a powerful Chrome Extension for **claude.ai** that solves the token limit wall. By silently compressing your chat history locally, it gives you infinite conversation memory without burning through your hourly limits.
 
----
+## 📋 Table of Contents
+- [The Problem](#-the-problem)
+- [The Solution](#-the-solution)
+- [Key Features](#-key-features)
+- [Installation](#-installation)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Command Reference](#-command-reference)
+- [API Key Setup](#-api-key-setup)
+- [Privacy & Security](#-privacy--security)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-## The Problem
+## 🚨 The Problem
 
 Every message you send to Claude makes it re-read the *entire* conversation from scratch. In a 20-message conversation, message #21 pays the token cost of all 20 previous messages plus itself. The longer you chat, the faster you burn through your limit. Hit the cap → wait 5 hours. Start a new chat → lose all context.
 
-## The Solution
+## 💡 The Solution
 
-ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**. It uses Anthropic's API locally to compress exchanges into ~70 token nodes, storing them in IndexedDB. When you chat, it injects only the most relevant nodes.
+ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**. It uses Anthropic's API locally to compress exchanges into ~70 token nodes, storing them in IndexedDB. When you chat, it injects only the most relevant nodes via advanced TF-IDF matching.
 
-```
+```text
 Every message WITHOUT ContextPilot:
 [Msg 1][Msg 2][Msg 3][Msg 4][Msg 5][Msg 6] + New prompt = ~5,000 tokens 🔴
 
@@ -24,103 +43,91 @@ Every message WITH ContextPilot:
 Savings: 96%
 ```
 
----
+## ✨ Key Features
 
-## Features
+- **Automatic Compression:** Silently compresses history after every response using the fast Haiku model.
+- **Smart Relevance (TF-IDF):** Injects only the most mathematically relevant context nodes for the current prompt.
+- **Live Token HUD:** Displays accurate session/weekly usage and cache timers natively integrated into the claude.ai interface.
+- **Integrated Command System:** Local `/cp` slash commands intercepted seamlessly from the chat box.
+- **Interactive Graph:** A live D3.js visualizer panel representing your conversation tree.
+- **Zero-Friction Install:** No build steps, no Git cloning required. Just download and drop.
 
-1. **Automatic Compression:** Silently compresses history after every response.
-2. **Smart Relevance (TF-IDF):** Injects only the most relevant context nodes for the current prompt.
-3. **Live Token HUD:** Displays accurate session/weekly usage and cache timers right in claude.ai.
-4. **Slash Commands:** Integrated `/cp` command system directly inside the Claude chat box.
-5. **D3 Graph Panel:** A live, interactive visualization of your conversation tree.
-6. **One-click .zip Install:** No git clone or build steps required.
-7. **Auto API Key Capture:** Seamlessly grabs your Anthropic API key directly from the console.
+## 🚀 Installation
 
----
+Install the extension locally in just 3 steps:
 
-## Installation
-
-Install in 3 steps (no terminal needed):
-
-1. Download **[context-pilot-v1.0.0.zip](https://github.com/prasadaniket/ContextPilot/raw/main/context-pilot-v1.0.0.zip)** directly or from the GitHub Releases.
-2. Go to `chrome://extensions` in Chrome and enable **Developer mode** (toggle in the top right).
+1. Download **[context-pilot-v1.0.0.zip](https://github.com/prasadaniket/ContextPilot/raw/main/context-pilot-v1.0.0.zip)** directly.
+2. Go to `chrome://extensions` in Chrome and toggle **Developer mode** (top right corner).
 3. **Drag and drop** the downloaded zip file onto the extensions page.
 
-Done! The extension is now active on claude.ai.
+You're done! Open [claude.ai](https://claude.ai) and look for the ContextPilot HUD at the top.
 
----
+## 🛠 Tech Stack
 
-## API Key Setup
+Built entirely with modern web standards and lightweight libraries to ensure zero bloat:
 
-![Auto API Key Flow](diagram/auto_api_key_flow.svg)
+- **Core/Runtime:** Vanilla JavaScript (ES6+), Chrome Extension APIs (Manifest V3)
+- **Database:** IndexedDB (`idb` for async transactions)
+- **Algorithms:** Custom TF-IDF Engine, Cosine Similarity math for semantic relevance
+- **Visualization:** [D3.js](https://d3js.org/) (Force-directed graphs)
+- **Tokenization:** `gpt-tokenizer` (Vendored for exact client-side BPE counting)
+- **CI/CD:** GitHub Actions for automated `.zip` releases
 
-ContextPilot uses the Anthropic API (`claude-haiku-3-5`) to generate high-quality compressed summaries (costing roughly $0.001 per call).
+## 📐 Architecture
 
-**Auto Method:**
-1. Click the ContextPilot icon in your Chrome toolbar.
-2. Click **"Get API key automatically"**.
-3. A tab will briefly open `console.anthropic.com` and automatically securely extract a new key.
-
-**Manual Method:**
-1. Go to [console.anthropic.com](https://console.anthropic.com).
-2. Generate a new API key (`sk-ant-...`).
-3. Click the ContextPilot popup and paste your key into the settings.
-
----
-
-## Command Reference
-
-![Command System flow](diagram/cp_command_system.svg)
-
-Type any of these commands directly into the Claude chat box. They are intercepted locally and never sent to Claude.
-
-| Command | What it does |
-|---|---|
-| `/cp` | Opens the status popup programmatically. |
-| `/cp-tree` | Toggles the D3 graph sidebar panel. |
-| `/cp-status` | Prints live token stats as a chat message. |
-| `/cp-skip` | Skips compression for the next message only. |
-| `/cp-pause` | Pauses ALL compression until resumed. |
-| `/cp-resume` | Resumes compression. |
-| `/cp-reset` | Clears the context tree for the current conversation. |
-| `/cp-export` | Downloads the current conversation tree as a JSON file. |
-| `/cp-mode deep` | Sets context injection depth to 3 nodes. |
-| `/cp-mode light` | Sets context injection depth to 1 node. |
-| `/cp-help` | Prints all commands as a system message in chat. |
-
----
-
-## Architecture
+ContextPilot operates on four distinct layers integrated into a single seamless pipeline:
 
 ![Architecture Map](diagram/contextpilot_repo_integration_map.svg)
 
-ContextPilot is built upon 4 architectural layers, combining 4 open-source approaches into one extension:
+## ⌨️ Command Reference
 
-| Layer | Source | What it does |
-|---|---|---|
-| **Display** | claude-counter (she-llac) | Live HUD for tokens, session/weekly bars, cache timer. |
-| **Commands** | get-shit-done pattern | Local `/cp` slash commands intercepted from chat input. |
-| **Compression** | ContextPilot original | Fetch intercept, lean payload injection, background compression. |
-| **Graph panel** | code-review-graph (tirth8205)| D3.js sidebar visualizing the live prompt tree. |
+ContextPilot intercepts commands prefixed with `/cp` natively in the Claude chat box.
 
----
+![Command System flow](diagram/cp_command_system.svg)
 
-## Privacy
+| Command | Description |
+|---|---|
+| `/cp` or `/cp-status` | Prints live token stats as an injected chat message. |
+| `/cp-tree` | Toggles the interactive D3 graph sidebar panel. |
+| `/cp-skip` | Skips compression for the next message only. |
+| `/cp-pause` / `/cp-resume` | Pauses or resumes all compression globally. |
+| `/cp-reset` | Clears the context tree for the current conversation. |
+| `/cp-export` | Downloads the current conversation tree as a JSON file. |
+| `/cp-mode <light\|deep>` | Sets context injection depth to 1 node (light) or 3 nodes (deep). |
+| `/cp-help` | Prints all commands as a system message in chat. |
 
-- All data is stored completely locally in your browser's IndexedDB.
-- The ONLY external call made is to `api.anthropic.com` for the compression logic.
-- Your Anthropic API key is stored securely in `chrome.storage.local` and never leaves your machine.
-- No analytics, telemetry, or tracking servers of any kind.
+## 🔑 API Key Setup
 
----
+ContextPilot uses Anthropic's API (`claude-3-haiku-20240307`) to generate high-quality compressed summaries (costing roughly $0.001 per call).
 
-## Credits
+![Auto API Key Flow](diagram/auto_api_key_flow.svg)
 
-This project stands on the shoulders of incredible open-source work:
-- Display layer and tokenizer adapted from [claude-counter](https://github.com/she-llac/claude-counter) by she-llac.
-- Slash command design pattern adapted from [get-shit-done](https://github.com/gsd-build/get-shit-done) by gsd-build.
-- Graph visualization sidebar adapted from [code-review-graph](https://github.com/tirth8205/code-review-graph) by tirth8205.
+**Option A: Auto Grabber**
+1. Click the ContextPilot icon in your Chrome toolbar.
+2. Click **"Get API key automatically"**.
+3. A tab will briefly open `console.anthropic.com` and automatically extract a key securely.
 
-## License
+**Option B: Manual Entry**
+1. Go to [console.anthropic.com](https://console.anthropic.com).
+2. Generate a new API key.
+3. Paste your key into the ContextPilot extension popup settings.
 
-MIT
+## 🔒 Privacy & Security
+
+Your data never leaves your machine. 
+- **100% Local Storage:** All conversation nodes and keywords are stored in your browser's local IndexedDB.
+- **Secure Keys:** Your API key is encrypted and stored securely in `chrome.storage.local`.
+- **No Middlemen:** The ONLY external network call made is directly to `api.anthropic.com` for local compression logic. There are no tracking servers, telemetry, or analytics.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are highly welcome! 
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
