@@ -8,32 +8,56 @@
 </head>
 <body>
   <header class="header">
-    <div>
-      <h1>ContextPilot</h1>
-      <p>v0.1.0</p>
-    </div>
+    <h1>ContextPilot</h1>
+    <p>v0.1.0</p>
   </header>
 
-  <section class="stats-grid">
-    <article class="card">
-      <h2>Tokens Saved</h2>
-      <p id="tokensSaved">0</p>
-    </article>
-    <article class="card">
-      <h2>Nodes Stored</h2>
-      <p id="nodesStored">0</p>
-    </article>
-    <article class="card">
-      <h2>Conversations</h2>
-      <p id="conversations">0</p>
-    </article>
-    <article class="card">
-      <h2>Compression Ratio</h2>
-      <p id="compressionRatio">0%</p>
-    </article>
+  <section class="panel">
+    <h2>Live Usage</h2>
+    <div class="stats-grid">
+      <article class="card">
+        <h3>Session Usage</h3>
+        <p id="sessionUsage">--%</p>
+      </article>
+      <article class="card">
+        <h3>Weekly Usage</h3>
+        <p id="weeklyUsage">--%</p>
+      </article>
+      <article class="card">
+        <h3>Cache Timer</h3>
+        <p id="cacheTimer">--</p>
+      </article>
+      <article class="card">
+        <h3>Live Tokens</h3>
+        <p id="liveTokens">0</p>
+      </article>
+    </div>
   </section>
 
-  <section class="settings">
+  <section class="panel">
+    <h2>Compression Savings</h2>
+    <div class="stats-grid">
+      <article class="card">
+        <h3>Tokens Saved</h3>
+        <p id="tokensSaved">0</p>
+      </article>
+      <article class="card">
+        <h3>Nodes Stored</h3>
+        <p id="nodesStored">0</p>
+      </article>
+      <article class="card">
+        <h3>Conversations</h3>
+        <p id="conversations">0</p>
+      </article>
+      <article class="card">
+        <h3>Compression</h3>
+        <p id="compressionRatio">0%</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="settings panel">
+    <h2>Settings</h2>
     <label for="apiKeyInput">Anthropic API Key</label>
     <input id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off">
     <div class="actions">

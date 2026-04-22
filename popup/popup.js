@@ -1,10 +1,12 @@
 /**
  * ContextPilot — popup.js
  * --------------------------
- * Renders token/tree stats and handles API key plus data reset actions.
+ * Renders merged live usage plus compression metrics and handles settings actions.
  * Part of the ContextPilot Chrome Extension.
  * GitHub: https://github.com/YOUR_USERNAME/context-pilot
  */
+
+let liveSnapshot = null;
 
 /**
  * sendMessage
@@ -36,9 +38,83 @@ function setStatus(text) {
 }
 
 /**
+ * formatCountdown
+ * -----------
+ * Formats a future epoch timestamp into a compact countdown string.
+ *
+ * @param {number|null} epochMs - Future timestamp in milliseconds.
+ * @returns {string} Countdown text.
+ */
+function formatCountdown(epochMs) {
+  try {
+    if (!Number.isFinite(epochMs)) {
+      return '--';
+    }
+    const delta = epochMs - Date.now();
+    if (delta <= 0) {
+      return '0s';
+    }
+    const seconds = Math.floor(delta / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
+  } catch (_error) {
+    return '--';
+  }
+}
+
+/**
+ * renderLiveUsage
+ * -----------
+ * Renders live usage and cache metrics in the top section.
+ *
+ * @param {Object} metrics - Live metrics payload from background.
+ * @returns {void} No return value.
+ */
+function renderLiveUsage(metrics) {
+  document.getElementById('sessionUsage').textContent = Number.isFinite(metrics?.sessionUsagePct)
+    ? `${metrics.sessionUsagePct}%`
+    : '--%';
+  document.getElementById('weeklyUsage').textContent = Number.isFinite(metrics?.weeklyUsagePct)
+    ? `${metrics.weeklyUsagePct}%`
+    : '--%';
+  document.getElementById('cacheTimer').textContent = formatCountdown(metrics?.cacheUntil);
+  document.getElementById('liveTokens').textContent = String(metrics?.tokenCount || 0);
+}
+
+/**
+ * loadLiveUsage
+ * -----------
+ * Fetches latest live usage metrics from background and renders them.
+ *
+ * @returns {Promise<void>} Resolves when UI updates complete.
+ */
+async function loadLiveUsage() {
+  try {
+    const response = await sendMessage({ type: 'GET_LIVE_USAGE' });
+    if (!response || response.error) {
+      setStatus(response?.error || 'Failed to load live usage.');
+      return;
+    }
+    liveSnapshot = response;
+    renderLiveUsage(response);
+  } catch (error) {
+    console.error('[ContextPilot] loadLiveUsage failed:', error);
+    setStatus('Failed to load live usage.');
+  }
+}
+
+/**
  * loadStats
  * -----------
- * Fetches and renders aggregate extension statistics.
+ * Fetches and renders aggregate compression statistics.
  *
  * @returns {Promise<void>} Resolves when UI values are updated.
  */
@@ -142,12 +218,29 @@ async function clearAllData() {
   }
 }
 
+/**
+ * startCountdownTicker
+ * -----------
+ * Refreshes countdown labels every second without polling background.
+ *
+ * @returns {void} No return value.
+ */
+function startCountdownTicker() {
+  setInterval(() => {
+    if (liveSnapshot) {
+      renderLiveUsage(liveSnapshot);
+    }
+  }, 1000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     document.getElementById('saveApiKeyBtn').addEventListener('click', saveApiKey);
     document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+    await loadLiveUsage();
     await loadStats();
     await loadApiKey();
+    startCountdownTicker();
   } catch (error) {
     console.error('[ContextPilot] popup init failed:', error);
   }
