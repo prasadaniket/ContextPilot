@@ -273,7 +273,7 @@ function injectHUD() {
   const style = document.createElement('style');
   style.textContent = `
     #cp-hud {
-      position:fixed; bottom:100px; left:50%; transform:translateX(-50%); z-index:9999;
+      position:fixed; top:24px; left:0; right:0; margin:auto; width:max-content; z-index:9999;
       display:flex; align-items:center; flex-wrap:wrap; gap:0;
       padding:6px 16px;
       background:rgba(255,255,255,0.95);
@@ -476,4 +476,4 @@ import(chrome.runtime.getURL('graph/tree_panel.js'))
   .then(module => module.openPanel())
   .catch(err => console.error('[ContextPilot] Failed to auto-load tree panel:', err));
 
-console.log(`${LOG} v1.0.1 loaded — display (claude-counter) + compression (ContextPilot) active`);
+console.log(`${LOG} v1.0.2 loaded — display (claude-counter) + compression (ContextPilot) active`);
