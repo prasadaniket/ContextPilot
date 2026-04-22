@@ -1,21 +1,13 @@
 /**
  * ContextPilot — content_script.js
  * --------------------------
- * Intercepts Claude fetch streams once and feeds both compression and live usage metrics.
+ * Intercepts Claude fetch requests, injects lean context, and triggers post-response compression.
  * Part of the ContextPilot Chrome Extension.
  * GitHub: https://github.com/YOUR_USERNAME/context-pilot
  */
 
 const CLAUDE_COMPLETION_ENDPOINT = /\/api\/organizations\/[^/]+\/chat_conversations\/[^/]+\/completion/;
 const originalFetch = window.fetch.bind(window);
-const liveState = {
-  tokenCount: 0,
-  cacheUntil: null,
-  sessionUsagePct: null,
-  sessionResetAt: null,
-  weeklyUsagePct: null,
-  weeklyResetAt: null
-};
 
 /**
  * sendRuntimeMessage
@@ -31,21 +23,6 @@ async function sendRuntimeMessage(message) {
   } catch (error) {
     console.error('[ContextPilot] Runtime message failed:', error);
     return { success: false, error: error.message };
-  }
-}
-
-/**
- * publishLiveMetrics
- * -----------
- * Pushes latest live token and usage metrics to background memory.
- *
- * @returns {Promise<void>} Resolves after publish attempt.
- */
-async function publishLiveMetrics() {
-  try {
-    await sendRuntimeMessage({ type: 'UPDATE_LIVE_METRICS', payload: { ...liveState } });
-  } catch (error) {
-    console.error('[ContextPilot] Failed to publish live metrics:', error);
   }
 }
 
@@ -113,71 +90,9 @@ function extractLatestUserMessage(body) {
 }
 
 /**
- * estimateTokens
- * -----------
- * Counts tokens using vendored tokenizer when available, otherwise char heuristic.
- *
- * @param {string} text - Input text to count.
- * @returns {number} Estimated token count.
- */
-function estimateTokens(text) {
-  try {
-    const tokenizer = globalThis.ContextPilotTokenizer || globalThis.GPTTokenizer_o200k_base;
-    if (tokenizer?.countTokens && typeof tokenizer.countTokens === 'function') {
-      return tokenizer.countTokens(text || '');
-    }
-    return Math.ceil((text || '').length / 4);
-  } catch (_error) {
-    return Math.ceil((text || '').length / 4);
-  }
-}
-
-/**
- * extractAllMessageText
- * -----------
- * Flattens a Claude request messages array into one text blob for counting.
- *
- * @param {Object[]} messages - Claude request messages list.
- * @returns {string} Joined message text.
- */
-function extractAllMessageText(messages) {
-  try {
-    return (Array.isArray(messages) ? messages : [])
-      .map((message) => extractTextFromContent(message?.content))
-      .join('\n');
-  } catch (error) {
-    console.error('[ContextPilot] extractAllMessageText failed:', error);
-    return '';
-  }
-}
-
-/**
- * toEpochMs
- * -----------
- * Converts reset timestamp values to epoch milliseconds.
- *
- * @param {number|string|null} value - Timestamp candidate.
- * @returns {number|null} Epoch milliseconds or null.
- */
-function toEpochMs(value) {
-  try {
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value > 1_000_000_000_000 ? value : value * 1000;
-    }
-    if (typeof value === 'string') {
-      const parsed = Date.parse(value);
-      return Number.isFinite(parsed) ? parsed : null;
-    }
-    return null;
-  } catch (_error) {
-    return null;
-  }
-}
-
-/**
  * parseSseChunk
  * -----------
- * Parses one SSE chunk and extracts text deltas, done marker, and usage windows.
+ * Parses one SSE chunk and extracts text deltas and done marker.
  *
  * @param {string} chunkText - Raw SSE chunk text.
  * @returns {{ done: boolean, textDelta: string }} Parsed chunk result.
@@ -207,18 +122,6 @@ function parseSseChunk(chunkText) {
       } else if (parsed?.content_block?.text) {
         textDelta += parsed.content_block.text;
       }
-
-      if (parsed?.type === 'message_limit' && parsed?.message_limit?.windows) {
-        const windows = parsed.message_limit.windows;
-        if (typeof windows['5h']?.utilization === 'number') {
-          liveState.sessionUsagePct = Math.round(windows['5h'].utilization * 10000) / 100;
-          liveState.sessionResetAt = toEpochMs(windows['5h'].resets_at);
-        }
-        if (typeof windows['7d']?.utilization === 'number') {
-          liveState.weeklyUsagePct = Math.round(windows['7d'].utilization * 10000) / 100;
-          liveState.weeklyResetAt = toEpochMs(windows['7d'].resets_at);
-        }
-      }
     } catch (_error) {
       // Ignore non-JSON SSE lines.
     }
@@ -229,7 +132,7 @@ function parseSseChunk(chunkText) {
 /**
  * watchCompletionStream
  * -----------
- * Reads cloned Claude SSE response stream and updates both compression and live metrics.
+ * Reads cloned Claude SSE response stream and sends compression payload on completion.
  *
  * @param {Response} response - Cloned fetch response.
  * @param {Object} meta - Meta fields for compression payload.
@@ -259,9 +162,6 @@ async function watchCompletionStream(response, meta) {
         streamDone = true;
       }
     }
-
-    liveState.cacheUntil = Date.now() + (5 * 60 * 1000);
-    await publishLiveMetrics();
 
     if (assistantMsg.trim()) {
       await sendRuntimeMessage({
@@ -297,9 +197,6 @@ window.fetch = async function interceptedFetch(resource, init = {}) {
     try {
       parsedBody = nextInit.body ? JSON.parse(nextInit.body) : {};
       userMsg = extractLatestUserMessage(parsedBody);
-      liveState.tokenCount = estimateTokens(extractAllMessageText(parsedBody?.messages));
-      await publishLiveMetrics();
-
       const response = await sendRuntimeMessage({
         type: 'GET_LEAN_CONTEXT',
         payload: {

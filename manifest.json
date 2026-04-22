@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ContextPilot",
   "version": "0.1.0",
-  "description": "Compress Claude chat history into a smart token-saving context tree. Stay in conversations longer.",
+  "description": "Compress Claude chat history into a smart token-saving context tree.",
   "permissions": [
     "storage",
     "activeTab",
@@ -20,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["vendor/gpt-tokenizer.js", "content_script.js"],
+      "js": ["content_script.js"],
       "run_at": "document_idle",
       "all_frames": false
     }

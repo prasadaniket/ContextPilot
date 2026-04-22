@@ -97,16 +97,8 @@ context-pilot/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-├── vendor/
-│   └── gpt-tokenizer.js      # Tokenizer shim (replace with vendored o200k tokenizer for exact counts)
-├── CURSOR_PROMPT.md           # AI coding assistant prompt for this project
 └── README.md
 ```
-
-## Tokenizer Note
-
-`vendor/gpt-tokenizer.js` currently includes a graceful fallback tokenizer shim.  
-For exact token counts, replace it with the vendored o200k tokenizer implementation from the Claude Counter project.
 
 ---
 
@@ -137,7 +129,7 @@ Each node stores: compressed summary, keywords, parent node ID, raw vs compresse
 
 ## Limitations
 
-- Claude's API endpoint format may change. If interception stops working, check the `CLAUDE_API_PATTERN` regex in `content_script.js`
+- Claude's API endpoint format may change. If interception stops working, check the `CLAUDE_COMPLETION_ENDPOINT` regex in `content_script.js`
 - Compression quality depends on Haiku. For very technical conversations, some nuance may be lost in the summary — treat it as lossy-but-useful
 - The extension does not currently work on mobile Chrome
 

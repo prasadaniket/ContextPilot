@@ -11,16 +11,6 @@ import { extractKeywords, findTopNodes } from './core/keyword_extractor.js';
 import { buildLeanPayload } from './core/context_builder.js';
 import { compressExchange } from './core/compressor.js';
 
-const liveMetrics = {
-  tokenCount: 0,
-  cacheUntil: null,
-  sessionUsagePct: null,
-  sessionResetAt: null,
-  weeklyUsagePct: null,
-  weeklyResetAt: null,
-  updatedAt: null
-};
-
 /**
  * estimateTokens
  * -----------
@@ -141,48 +131,6 @@ async function handleGetStats() {
 }
 
 /**
- * handleUpdateLiveMetrics
- * -----------
- * Updates in-memory live usage and token metrics from claude.ai stream events.
- *
- * @param {Object} payload - Live metrics payload from content script.
- * @returns {Promise<Object>} Update status response.
- */
-async function handleUpdateLiveMetrics(payload) {
-  try {
-    Object.assign(liveMetrics, {
-      tokenCount: Number.isFinite(payload?.tokenCount) ? payload.tokenCount : liveMetrics.tokenCount,
-      cacheUntil: Number.isFinite(payload?.cacheUntil) ? payload.cacheUntil : liveMetrics.cacheUntil,
-      sessionUsagePct: Number.isFinite(payload?.sessionUsagePct) ? payload.sessionUsagePct : liveMetrics.sessionUsagePct,
-      sessionResetAt: Number.isFinite(payload?.sessionResetAt) ? payload.sessionResetAt : liveMetrics.sessionResetAt,
-      weeklyUsagePct: Number.isFinite(payload?.weeklyUsagePct) ? payload.weeklyUsagePct : liveMetrics.weeklyUsagePct,
-      weeklyResetAt: Number.isFinite(payload?.weeklyResetAt) ? payload.weeklyResetAt : liveMetrics.weeklyResetAt,
-      updatedAt: Date.now()
-    });
-    return { success: true };
-  } catch (error) {
-    console.error('[ContextPilot] UPDATE_LIVE_METRICS failed:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * handleGetLiveUsage
- * -----------
- * Returns latest in-memory live usage and cache metrics for popup rendering.
- *
- * @returns {Promise<Object>} Live metrics payload.
- */
-async function handleGetLiveUsage() {
-  try {
-    return { success: true, ...liveMetrics };
-  } catch (error) {
-    console.error('[ContextPilot] GET_LIVE_USAGE failed:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-/**
  * handleSaveApiKey
  * -----------
  * Saves user-provided Anthropic API key to extension local storage.
@@ -238,10 +186,6 @@ async function handleMessage(message) {
         return await handleCompressExchange(message.payload || {});
       case 'GET_STATS':
         return await handleGetStats();
-      case 'UPDATE_LIVE_METRICS':
-        return await handleUpdateLiveMetrics(message.payload || {});
-      case 'GET_LIVE_USAGE':
-        return await handleGetLiveUsage();
       case 'SAVE_API_KEY':
         return await handleSaveApiKey(message.payload || {});
       case 'GET_API_KEY':
