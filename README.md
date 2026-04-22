@@ -14,22 +14,6 @@ Every message you send to Claude makes it re-read the *entire* conversation from
 
 ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**. It uses Anthropic's API locally to compress exchanges into ~70 token nodes, storing them in IndexedDB. When you chat, it injects only the most relevant nodes.
 
-```mermaid
-graph TD
-    A[User types prompt] --> B{ContextPilot Intercepts}
-    B -->|Original payload| C[Extract full chat history]
-    C --> D[Retrieve stored nodes from IndexedDB]
-    D --> E[Score nodes via TF-IDF]
-    E --> F[Inject top 2 nodes as Context]
-    F --> G[Lean Payload sent to Claude API]
-    G --> H[Claude responds]
-    H --> I[Watch SSE Stream]
-    I --> J[Send user+assistant exchange to Anthropic API]
-    J --> K[Compress to ~70 tokens]
-    K --> L[(Store new node in IndexedDB)]
-```
-
-**Token Usage Comparison:**
 ```
 Every message WITHOUT ContextPilot:
 [Msg 1][Msg 2][Msg 3][Msg 4][Msg 5][Msg 6] + New prompt = ~5,000 tokens 🔴
@@ -68,6 +52,8 @@ Done! The extension is now active on claude.ai.
 
 ## API Key Setup
 
+![Auto API Key Flow](diagram/auto_api_key_flow.svg)
+
 ContextPilot uses the Anthropic API (`claude-haiku-3-5`) to generate high-quality compressed summaries (costing roughly $0.001 per call).
 
 **Auto Method:**
@@ -83,6 +69,8 @@ ContextPilot uses the Anthropic API (`claude-haiku-3-5`) to generate high-qualit
 ---
 
 ## Command Reference
+
+![Command System flow](diagram/cp_command_system.svg)
 
 Type any of these commands directly into the Claude chat box. They are intercepted locally and never sent to Claude.
 
@@ -104,36 +92,9 @@ Type any of these commands directly into the Claude chat box. They are intercept
 
 ## Architecture
 
+![Architecture Map](diagram/contextpilot_repo_integration_map.svg)
+
 ContextPilot is built upon 4 architectural layers, combining 4 open-source approaches into one extension:
-
-```mermaid
-graph LR
-    subgraph Browser["Chrome Browser (claude.ai)"]
-        direction TB
-        UI["claude-counter HUD<br/>(Token Display)"]
-        CMD["Slash Commands<br/>(Chat Intercept)"]
-        D3["code-review-graph<br/>(Live D3 Tree)"]
-    end
-
-    subgraph Background["ContextPilot Service Worker"]
-        direction TB
-        COMP["Context Builder<br/>(Payload Injection)"]
-        TFIDF["Keyword Extractor<br/>(TF-IDF Scoring)"]
-        STORE[(IndexedDB Tree Store)]
-    end
-
-    subgraph APIs["External APIs"]
-        direction TB
-        CLAUDE["Claude API<br/>(Chat responses)"]
-        ANTHROPIC["Anthropic API<br/>(Haiku Compression)"]
-    end
-
-    Browser -- "Fetch Intercept" --> Background
-    Background <--> STORE
-    Background -- "Lean Payload" --> CLAUDE
-    Background -- "Raw Exchange" --> ANTHROPIC
-    ANTHROPIC -- "Compressed Summary" --> Background
-```
 
 | Layer | Source | What it does |
 |---|---|---|
