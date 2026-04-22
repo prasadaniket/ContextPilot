@@ -65,6 +65,15 @@ window.fetch = async function (url, options = {}) {
     userMessage = extractUserMessage(originalBody);
     const conversationId = extractConversationId(urlStr);
 
+    if (userMessage && userMessage.trim().startsWith('/cp')) {
+      const { routeCpCommand } = await import(chrome.runtime.getURL('commands/cp_commands.js'));
+      await routeCpCommand(userMessage);
+      
+      return new Response(new ReadableStream({
+        start(controller) { controller.close(); }
+      }), { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
+    }
+
     const leanPayload = await sendMessage({
       type: 'GET_LEAN_CONTEXT',
       payload: { originalBody, userMessage, conversationId }
@@ -469,4 +478,4 @@ injectHUD();
 watchNavigation();
 refreshCompressionStats();
 
-console.log(`${LOG} v0.5.0 loaded — display (claude-counter) + compression (ContextPilot) active`);
+console.log(`${LOG} v1.0.0 loaded — display (claude-counter) + compression (ContextPilot) active`);

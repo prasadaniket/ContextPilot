@@ -28,6 +28,12 @@
       "run_at": "document_idle"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["commands/*.js", "graph/*.js", "core/*.js"],
+      "matches": ["https://claude.ai/*"]
+    }
+  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {

@@ -127,7 +127,9 @@ function cmdTree() {
     main.style.paddingRight = cpState.sidebarOpen ? '290px' : '';
   } else {
     // Panel not yet injected — trigger tree_panel.js
-    chrome.runtime.sendMessage({ type: 'OPEN_TREE_PANEL' });
+    import(chrome.runtime.getURL('graph/tree_panel.js'))
+      .then(module => module.openPanel())
+      .catch(err => console.error('[ContextPilot] Failed to load tree panel:', err));
   }
 }
 

@@ -42,7 +42,7 @@ Savings: 96%
 
 Install in 3 steps (no terminal needed):
 
-1. Download **[context-pilot-v1.0.0.zip](context-pilot-v1.0.0.zip)** directly or from the GitHub Releases.
+1. Download **[context-pilot-v1.0.0.zip](https://github.com/prasadaniket/ContextPilot/raw/main/context-pilot-v1.0.0.zip)** directly or from the GitHub Releases.
 2. Go to `chrome://extensions` in Chrome and enable **Developer mode** (toggle in the top right).
 3. **Drag and drop** the downloaded zip file onto the extensions page.
 
