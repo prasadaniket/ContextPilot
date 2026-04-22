@@ -13,7 +13,7 @@
  *   Graph visualization adapted from code-review-graph by tirth8205 (MIT)
  *   https://github.com/tirth8205/code-review-graph
  *
- * GitHub: https://github.com/YOUR_USERNAME/context-pilot
+ * GitHub: https://github.com/prasadaniket/ContextPilot
  */
 const LOG = '[ContextPilot]';
 
