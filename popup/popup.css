@@ -1,0 +1,131 @@
+/**
+ * ContextPilot — popup.css
+ * --------------------------
+ * Styles the popup dashboard in light and dark color schemes.
+ * Part of the ContextPilot Chrome Extension.
+ * GitHub: https://github.com/YOUR_USERNAME/context-pilot
+ */
+
+:root {
+  --bg: #f7f7fa;
+  --surface: #ffffff;
+  --border: #e4e4ea;
+  --text: #1f2230;
+  --muted: #666b80;
+  --accent: #5865f2;
+  --danger: #d64545;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151720;
+    --surface: #202331;
+    --border: #31364a;
+    --text: #edf0ff;
+    --muted: #aab2d5;
+    --accent: #7f8dff;
+    --danger: #ff7676;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 360px;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.header p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.card p {
+  margin: 8px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.settings {
+  margin-top: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.settings label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.settings input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+#statusText {
+  margin: 10px 0 0;
+  min-height: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}

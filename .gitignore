@@ -1,0 +1,23 @@
+# Never commit API keys or secrets
+*.env
+.env*
+secrets.js
+config.local.js
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# If you ever add node for tooling
+node_modules/

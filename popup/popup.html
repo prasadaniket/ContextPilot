@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ContextPilot</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>ContextPilot</h1>
+      <p>v0.1.0</p>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article class="card">
+      <h2>Tokens Saved</h2>
+      <p id="tokensSaved">0</p>
+    </article>
+    <article class="card">
+      <h2>Nodes Stored</h2>
+      <p id="nodesStored">0</p>
+    </article>
+    <article class="card">
+      <h2>Conversations</h2>
+      <p id="conversations">0</p>
+    </article>
+    <article class="card">
+      <h2>Compression Ratio</h2>
+      <p id="compressionRatio">0%</p>
+    </article>
+  </section>
+
+  <section class="settings">
+    <label for="apiKeyInput">Anthropic API Key</label>
+    <input id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off">
+    <div class="actions">
+      <button id="saveApiKeyBtn">Save</button>
+      <button id="clearAllBtn" class="danger">Clear all data</button>
+    </div>
+    <p id="statusText"></p>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>
