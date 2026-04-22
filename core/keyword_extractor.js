@@ -1,185 +1,185 @@
 /**
- * ContextPilot — keyword_extractor.js
- * --------------------------
- * TF-IDF keyword scoring and node relevance ranking for context selection.
- * Part of the ContextPilot Chrome Extension.
+ * ContextPilot v1.0 — keyword_extractor.js
+ * --------------------------------
+ * TF-IDF keyword scoring + node matching.
+ *
+ * Sources:
+ *   Display layer adapted from claude-counter by she-llac (MIT)
+ *   https://github.com/she-llac/claude-counter
+ *
+ *   Command pattern adapted from get-shit-done by gsd-build (MIT)
+ *   https://github.com/gsd-build/get-shit-done
+ *
+ *   Graph visualization adapted from code-review-graph by tirth8205 (MIT)
+ *   https://github.com/tirth8205/code-review-graph
+ *
  * GitHub: https://github.com/YOUR_USERNAME/context-pilot
  */
+// ─── Stop Words ───────────────────────────────────────────────────────────────
 
+// Words that carry no semantic meaning — filtered before scoring
 const STOP_WORDS = new Set([
-  'the', 'a', 'an', 'is', 'it', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'but',
-  'i', 'you', 'we', 'this', 'that', 'with', 'can', 'how', 'what', 'my', 'your', 'do', 'did',
-  'was', 'are', 'be', 'have', 'has', 'had'
+  'the', 'a', 'an', 'is', 'it', 'in', 'on', 'at', 'to', 'for', 'of', 'and',
+  'or', 'but', 'i', 'you', 'we', 'this', 'that', 'with', 'can', 'how', 'what',
+  'my', 'your', 'do', 'did', 'was', 'are', 'be', 'have', 'has', 'had', 'not',
+  'so', 'if', 'as', 'by', 'from', 'will', 'would', 'could', 'should', 'may',
+  'might', 'just', 'also', 'then', 'than', 'when', 'where', 'who', 'which',
+  'there', 'here', 'about', 'up', 'out', 'all', 'some', 'any', 'been', 'more',
+  'its', 'they', 'them', 'their', 'our', 'was', 'were', 'into', 'through',
+  'get', 'got', 'use', 'used', 'like', 'make', 'made', 'need', 'want', 'know'
 ]);
+
+// ─── Text Processing ──────────────────────────────────────────────────────────
 
 /**
  * tokenize
- * -----------
- * Converts raw text into normalized tokens for TF-IDF computation.
+ * --------
+ * Converts raw text into a cleaned array of meaningful tokens.
+ * Lowercases, strips punctuation, removes stop words and short tokens.
  *
- * @param {string} text - Input text.
- * @returns {string[]} Filtered token list.
+ * @param {string} text - raw input text
+ * @returns {string[]} array of cleaned tokens
  */
 function tokenize(text) {
   return (text || '')
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')  // strip punctuation
     .split(/\s+/)
-    .filter((token) => token.length > 2 && !STOP_WORDS.has(token));
+    .filter(word => word.length > 2 && !STOP_WORDS.has(word));
 }
 
 /**
- * toTermFrequencyMap
- * -----------
- * Builds normalized term frequency values for one tokenized document.
+ * termFrequency
+ * -------------
+ * Counts how often each token appears in a document.
+ * Returns raw counts (not normalized) for cosine similarity use.
  *
- * @param {string[]} tokens - Token list for a document.
- * @returns {Map<string, number>} Term to normalized TF value map.
+ * @param {string[]} tokens - tokenized document
+ * @returns {Map<string, number>} token → count map
  */
-function toTermFrequencyMap(tokens) {
-  const map = new Map();
-  if (!tokens.length) {
-    return map;
-  }
-
+function termFrequency(tokens) {
+  const tf = new Map();
   for (const token of tokens) {
-    map.set(token, (map.get(token) || 0) + 1);
+    tf.set(token, (tf.get(token) || 0) + 1);
   }
-
-  const totalTerms = tokens.length;
-  for (const [term, count] of map.entries()) {
-    map.set(term, count / totalTerms);
-  }
-  return map;
+  return tf;
 }
 
-/**
- * inverseDocumentFrequency
- * -----------
- * Computes IDF score for one term within a corpus.
- *
- * @param {string} term - Term to score.
- * @param {string[][]} corpus - Corpus represented as tokenized documents.
- * @returns {number} IDF value with smoothing.
- */
-function inverseDocumentFrequency(term, corpus) {
-  const docsContainingTerm = corpus.reduce((count, tokens) => (
-    tokens.includes(term) ? count + 1 : count
-  ), 0);
-  return Math.log((1 + corpus.length) / (1 + docsContainingTerm)) + 1;
-}
-
-/**
- * buildTfIdfVector
- * -----------
- * Creates a TF-IDF vector map from one tokenized document and corpus.
- *
- * @param {string[]} tokens - Current document tokens.
- * @param {string[][]} corpus - Tokenized corpus.
- * @returns {Map<string, number>} Term to TF-IDF score map.
- */
-function buildTfIdfVector(tokens, corpus) {
-  const tf = toTermFrequencyMap(tokens);
-  const vector = new Map();
-  for (const [term, tfValue] of tf.entries()) {
-    vector.set(term, tfValue * inverseDocumentFrequency(term, corpus));
-  }
-  return vector;
-}
-
-/**
- * cosineSimilarity
- * -----------
- * Computes cosine similarity between two sparse TF-IDF vectors.
- *
- * @param {Map<string, number>} vectorA - First vector.
- * @param {Map<string, number>} vectorB - Second vector.
- * @returns {number} Similarity score from 0 to 1.
- */
-function cosineSimilarity(vectorA, vectorB) {
-  let dot = 0;
-  let magnitudeA = 0;
-  let magnitudeB = 0;
-
-  for (const [term, valueA] of vectorA.entries()) {
-    const valueB = vectorB.get(term) || 0;
-    dot += valueA * valueB;
-    magnitudeA += valueA * valueA;
-  }
-  for (const valueB of vectorB.values()) {
-    magnitudeB += valueB * valueB;
-  }
-
-  if (magnitudeA === 0 || magnitudeB === 0) {
-    return 0;
-  }
-  return dot / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
-}
+// ─── Keyword Extraction ───────────────────────────────────────────────────────
 
 /**
  * extractKeywords
- * -----------
- * Extracts top keywords from text ranked by TF-IDF score.
+ * ---------------
+ * Returns the top N most significant keywords from a text block.
+ * Uses term frequency (single-document TF) since we don't have a corpus IDF here.
+ * Good enough for matching — the node corpus is small (<100 nodes).
  *
- * @param {string} text - Source text to analyze.
- * @param {number} topN - Number of top keywords to return.
- * @returns {string[]} Top-ranked keyword list.
+ * @param {string} text - input text
+ * @param {number} topN - how many keywords to return (default 8)
+ * @returns {string[]} array of keyword strings, most significant first
  */
 export function extractKeywords(text, topN = 8) {
   const tokens = tokenize(text);
-  if (!tokens.length) {
-    return [];
-  }
-  const corpus = [tokens];
-  const tfIdf = buildTfIdfVector(tokens, corpus);
-  return [...tfIdf.entries()]
-    .sort((a, b) => b[1] - a[1])
+  const tf = termFrequency(tokens);
+
+  return Array.from(tf.entries())
+    .sort((a, b) => b[1] - a[1])   // sort by frequency desc
     .slice(0, topN)
-    .map(([term]) => term);
+    .map(([word]) => word);
+}
+
+// ─── Relevance Scoring ────────────────────────────────────────────────────────
+
+/**
+ * cosineSimilarity
+ * ----------------
+ * Computes cosine similarity between two term-frequency maps.
+ * Returns a value between 0 (no overlap) and 1 (identical).
+ *
+ * Formula: dot(A, B) / (|A| * |B|)
+ *
+ * @param {Map<string, number>} vecA
+ * @param {Map<string, number>} vecB
+ * @returns {number} similarity score 0–1
+ */
+function cosineSimilarity(vecA, vecB) {
+  let dotProduct = 0;
+  let magA = 0;
+  let magB = 0;
+
+  // Dot product: sum of (a_i * b_i) for shared terms
+  for (const [term, countA] of vecA) {
+    const countB = vecB.get(term) || 0;
+    dotProduct += countA * countB;
+    magA += countA * countA;
+  }
+
+  // Magnitude of B
+  for (const [, countB] of vecB) {
+    magB += countB * countB;
+  }
+
+  const magnitude = Math.sqrt(magA) * Math.sqrt(magB);
+  if (magnitude === 0) return 0;
+  return dotProduct / magnitude;
 }
 
 /**
  * scoreNodeRelevance
- * -----------
- * Scores one node against query text using cosine similarity on TF-IDF vectors.
+ * ------------------
+ * Scores how relevant a stored tree node is to the current user query.
+ * Compares the node's compressed text + keywords against the query text.
+ * Returns a 0–1 similarity score.
  *
- * @param {Object} node - Stored context node.
- * @param {string} queryText - Incoming user query.
- * @returns {number} Similarity score in range 0 to 1.
+ * @param {object} node - stored tree node (must have .compressed and .keywords)
+ * @param {string} queryText - the new user prompt
+ * @returns {number} relevance score 0–1
  */
 export function scoreNodeRelevance(node, queryText) {
-  const nodeText = `${node.compressed || ''} ${(node.keywords || []).join(' ')}`;
-  const nodeTokens = tokenize(nodeText);
+  // Build a combined text for the node: compressed summary + keywords boosted
+  const nodeText = [
+    node.compressed || '',
+    // Repeat keywords 2x to give them extra weight in the TF vector
+    ...(node.keywords || []),
+    ...(node.keywords || [])
+  ].join(' ');
+
   const queryTokens = tokenize(queryText);
-  const corpus = [nodeTokens, queryTokens].filter((tokens) => tokens.length);
+  const nodeTokens = tokenize(nodeText);
 
-  if (!corpus.length) {
-    return 0;
-  }
+  const queryVec = termFrequency(queryTokens);
+  const nodeVec = termFrequency(nodeTokens);
 
-  const nodeVector = buildTfIdfVector(nodeTokens, corpus);
-  const queryVector = buildTfIdfVector(queryTokens, corpus);
-  return cosineSimilarity(nodeVector, queryVector);
+  return cosineSimilarity(queryVec, nodeVec);
 }
 
 /**
  * findTopNodes
- * -----------
- * Returns the highest relevance nodes for a new prompt.
+ * ------------
+ * Scores all nodes against the query and returns the top K most relevant ones.
+ * This is the function background.js calls to decide what context to inject.
  *
- * @param {Object[]} nodes - Candidate nodes from the current conversation tree.
- * @param {string} queryText - Incoming user prompt text.
- * @param {number} topK - Maximum nodes to return.
- * @returns {Object[]} Top nodes sorted by descending relevance.
+ * @param {object[]} nodes - all tree nodes for the current conversation
+ * @param {string} queryText - the new user prompt
+ * @param {number} topK - how many nodes to return (default 2)
+ * @returns {object[]} top K nodes sorted by relevance score, highest first
  */
 export function findTopNodes(nodes, queryText, topK = 2) {
-  if (!Array.isArray(nodes) || nodes.length === 0) {
-    return [];
+  if (!nodes || nodes.length === 0) return [];
+  if (!queryText || queryText.trim() === '') {
+    // No query to match — return the most recent nodes as fallback
+    return nodes.slice(-topK).reverse();
   }
 
-  return [...nodes]
-    .map((node) => ({ node, score: scoreNodeRelevance(node, queryText) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Math.max(0, topK))
-    .map((entry) => entry.node);
+  // Score every node
+  const scored = nodes.map(node => ({
+    node,
+    score: scoreNodeRelevance(node, queryText)
+  }));
+
+  // Sort by score descending
+  scored.sort((a, b) => b.score - a.score);
+
+  // Return only the node objects, top K
+  return scored.slice(0, topK).map(({ node }) => node);
 }

@@ -1,17 +1,16 @@
 {
   "manifest_version": 3,
   "name": "ContextPilot",
-  "version": "0.1.0",
-  "description": "Compress Claude chat history into a smart token-saving context tree.",
+  "version": "1.0.0",
+  "description": "Token counter + compression + live graph panel for claude.ai. Stay in long conversations without hitting limits.",
   "permissions": [
-    "storage",
-    "activeTab",
-    "scripting",
-    "alarms"
+    "storage", "activeTab", "scripting",
+    "cookies", "alarms", "tabs"
   ],
   "host_permissions": [
     "https://claude.ai/*",
-    "https://api.anthropic.com/*"
+    "https://api.anthropic.com/*",
+    "https://console.anthropic.com/*"
   ],
   "background": {
     "service_worker": "background.js",
@@ -20,9 +19,13 @@
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["content_script.js"],
-      "run_at": "document_idle",
-      "all_frames": false
+      "js": ["vendor/gpt-tokenizer.js", "content_script.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://console.anthropic.com/*"],
+      "js": ["features/api_key_grabber.js"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
@@ -31,8 +34,7 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    },
-    "default_title": "ContextPilot"
+    }
   },
   "icons": {
     "16": "icons/icon16.png",

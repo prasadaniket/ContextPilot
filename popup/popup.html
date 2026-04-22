@@ -2,48 +2,93 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ContextPilot</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+
   <header class="header">
-    <h1>ContextPilot</h1>
-    <p>v0.1.0</p>
+    <div class="logo">
+      <div class="logo-mark">CP</div>
+      <div class="logo-text">
+        <div class="logo-name">ContextPilot</div>
+        <div class="logo-ver">v0.5.0</div>
+      </div>
+    </div>
+    <div class="status-pill" id="statusPill">active</div>
   </header>
 
-  <section class="panel">
-    <h2>Stats</h2>
-    <div class="stats-grid">
-      <article class="card">
-        <h3>Tokens Saved</h3>
-        <p id="tokensSaved">0</p>
-      </article>
-      <article class="card">
-        <h3>Nodes Stored</h3>
-        <p id="nodesStored">0</p>
-      </article>
-      <article class="card">
-        <h3>Conversations</h3>
-        <p id="conversations">0</p>
-      </article>
-      <article class="card">
-        <h3>Compression Ratio</h3>
-        <p id="compressionRatio">0%</p>
-      </article>
+  <!-- ── Section 1: Live usage (from claude-counter) ── -->
+  <div class="section-label">Live usage</div>
+  <div class="row-cards">
+    <div class="card">
+      <div class="card-label">Session</div>
+      <div class="card-val teal" id="sessionPct">—</div>
+      <div class="bar-track"><div class="bar-fill bar-teal" id="sessionBar"></div></div>
+      <div class="card-sub" id="sessionReset"></div>
     </div>
-  </section>
+    <div class="card">
+      <div class="card-label">Weekly</div>
+      <div class="card-val amber" id="weeklyPct">—</div>
+      <div class="bar-track"><div class="bar-fill bar-amber" id="weeklyBar"></div></div>
+      <div class="card-sub" id="weeklyReset"></div>
+    </div>
+  </div>
 
-  <section class="settings panel">
-    <h2>Settings</h2>
-    <label for="apiKeyInput">Anthropic API Key</label>
-    <input id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off">
-    <div class="actions">
-      <button id="saveApiKeyBtn">Save</button>
-      <button id="clearAllBtn" class="danger">Clear all data</button>
+  <div class="full-card">
+    <div class="full-row">
+      <span class="card-label">Context window</span>
+      <span class="card-sub" id="tokenCount">— / 200K tokens</span>
     </div>
-    <p id="statusText"></p>
-  </section>
+    <div class="bar-track"><div class="bar-fill bar-teal" id="tokenBar"></div></div>
+  </div>
+
+  <div class="full-card cache-row">
+    <span class="card-label">Cache timer</span>
+    <span class="cache-val" id="cacheTimer">—</span>
+    <div class="cache-sub">conversation stays cached for 5 min after last message</div>
+  </div>
+
+  <!-- ── Section 2: Compression savings (from ContextPilot) ── -->
+  <div class="divider"></div>
+  <div class="section-label">Compression savings</div>
+  <div class="row-cards">
+    <div class="card">
+      <div class="card-label">Tokens saved</div>
+      <div class="card-val purple" id="tokensSaved">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Compression</div>
+      <div class="card-val purple" id="compressionRatio">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Nodes</div>
+      <div class="card-val" id="totalNodes">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Chats</div>
+      <div class="card-val" id="chatCount">—</div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: API key settings ── -->
+  <div class="divider"></div>
+  <div class="section-label">Compression API key</div>
+  <div class="settings-block">
+    <div class="api-row">
+      <input type="password" id="apiInput" class="api-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"/>
+      <button class="btn-save" id="saveBtn">Save</button>
+    </div>
+    <div class="api-status" id="apiStatus"></div>
+    <div class="api-hint">Used only for compression (Haiku model — very low cost). Stored locally by Chrome.</div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="divider"></div>
+  <div class="footer">
+    <button class="link-btn" id="clearBtn">Clear all data</button>
+    <a class="link-btn" href="https://github.com/YOUR_USERNAME/context-pilot" target="_blank">GitHub</a>
+  </div>
 
   <script src="popup.js"></script>
 </body>

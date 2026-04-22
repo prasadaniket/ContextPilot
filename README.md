@@ -1,6 +1,8 @@
-# ContextPilot
+# ContextPilot v1.0.0
 
-**A Chrome Extension that compresses your Claude chat history into a smart token-saving context tree — so you can stay in long conversations without hitting the 5-hour reset wall.**
+**One extension to rule your Claude token limits**
+
+ContextPilot is a Chrome Extension for claude.ai that solves the token limit wall by compressing your chat history locally, giving you infinite conversation memory without burning through your hourly limits.
 
 ---
 
@@ -10,162 +12,109 @@ Every message you send to Claude makes it re-read the *entire* conversation from
 
 ## The Solution
 
-ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**:
-
-- After each Claude response, the exchange is silently compressed into a ~70 token node using the Anthropic API
-- Nodes are stored locally in IndexedDB as a linked tree
-- On the next message, only the 2 most relevant past nodes are injected — not the full history
-- Claude still gets full context on what matters. You save ~85% of tokens.
+ContextPilot intercepts every outgoing request to Claude's API and replaces the full chat history with a **compressed context tree**. It uses Anthropic's API locally to compress exchanges into ~70 token nodes, storing them in IndexedDB. When you chat, it injects only the most relevant nodes.
 
 ```
-Before: 6 messages × ~900 tokens = 5,400 tokens per request
-After:  2 relevant nodes × ~70 tokens + new prompt = ~200 tokens per request
+Every message WITHOUT ContextPilot:
+[Msg 1][Msg 2][Msg 3][Msg 4][Msg 5][Msg 6] + New prompt = ~5,000 tokens 🔴
+
+Every message WITH ContextPilot:
+[P3 summary 68tk][P6 summary 72tk] + New prompt = ~200 tokens ✅
+
+Savings: 96%
 ```
 
 ---
 
 ## Features
 
-- Automatic compression after every Claude response (background, zero latency)
-- Smart relevance scoring (TF-IDF) picks only the most relevant past context
-- Token savings dashboard in the popup
-- 100% local — no server, no account, your prompts never leave your browser
-- Falls back gracefully if anything breaks (never interrupts Claude)
+1. **Automatic Compression:** Silently compresses history after every response.
+2. **Smart Relevance (TF-IDF):** Injects only the most relevant context nodes for the current prompt.
+3. **Live Token HUD:** Displays accurate session/weekly usage and cache timers right in claude.ai.
+4. **Slash Commands:** Integrated `/cp` command system directly inside the Claude chat box.
+5. **D3 Graph Panel:** A live, interactive visualization of your conversation tree.
+6. **One-click .zip Install:** No git clone or build steps required.
+7. **Auto API Key Capture:** Seamlessly grabs your Anthropic API key directly from the console.
 
 ---
 
-## Installation (Developer Mode)
+## Installation
 
-> The extension is not yet on the Chrome Web Store. Install manually in under 2 minutes.
+Install in 3 steps (no terminal needed):
 
-1. **Clone this repo**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/context-pilot.git
-   cd context-pilot
-   ```
+1. Download `context-pilot-v1.0.0.zip` from the GitHub Releases.
+2. Go to `chrome://extensions` in Chrome and enable **Developer mode** (toggle in the top right).
+3. **Drag and drop** the downloaded zip file onto the extensions page.
 
-2. **Open Chrome Extensions**
-   - Go to `chrome://extensions` in your browser
-
-3. **Enable Developer Mode**
-   - Toggle the switch in the top-right corner
-
-4. **Load the extension**
-   - Click **"Load unpacked"**
-   - Select the `context-pilot/` folder
-
-5. **Add your Anthropic API key**
-   - Click the ContextPilot icon in your Chrome toolbar
-   - Paste your API key (starts with `sk-ant-...`)
-   - Click **Save**
-
-6. **Go to claude.ai and start chatting**
-   - ContextPilot activates automatically on `claude.ai`
+Done! The extension is now active on claude.ai.
 
 ---
 
-## Getting an Anthropic API Key
+## API Key Setup
 
-1. Go to [console.anthropic.com](https://console.anthropic.com)
-2. Sign in or create an account
-3. Navigate to **API Keys** → **Create Key**
-4. Copy the key and paste it into the ContextPilot popup
+ContextPilot uses the Anthropic API (`claude-haiku-3-5`) to generate high-quality compressed summaries (costing roughly $0.001 per call).
 
-> The key is stored in `chrome.storage.local` — encrypted by Chrome, never synced or sent anywhere except to `api.anthropic.com` for compression.
+**Auto Method:**
+1. Click the ContextPilot icon in your Chrome toolbar.
+2. Click **"Get API key automatically"**.
+3. A tab will briefly open `console.anthropic.com` and automatically securely extract a new key.
 
-> Compression uses `claude-haiku-3-5` which costs roughly $0.001 per compression call — negligible for everyday use.
-
----
-
-## File Structure
-
-```
-context-pilot/
-├── manifest.json              # Chrome extension config (Manifest V3)
-├── background.js              # Service worker: API calls + message routing
-├── content_script.js          # Injected into claude.ai: fetch interceptor
-├── core/
-│   ├── tree_store.js          # IndexedDB CRUD for prompt tree nodes
-│   ├── keyword_extractor.js   # TF-IDF keyword scoring + node matching
-│   ├── context_builder.js     # Assembles lean payload from tree + prompt
-│   └── compressor.js          # Calls Anthropic API to compress exchanges
-├── popup/
-│   ├── popup.html             # Extension popup: token dashboard UI
-│   ├── popup.js               # Reads tree stats, renders dashboard
-│   └── popup.css              # Popup styles (light + dark mode)
-├── icons/
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-└── README.md
-```
+**Manual Method:**
+1. Go to [console.anthropic.com](https://console.anthropic.com).
+2. Generate a new API key (`sk-ant-...`).
+3. Click the ContextPilot popup and paste your key into the settings.
 
 ---
 
-## How It Works
+## Command Reference
 
-### 1. Fetch Interception
-`content_script.js` overrides `window.fetch` on claude.ai. When a message is sent, it catches the POST body before it leaves the browser.
+Type any of these commands directly into the Claude chat box. They are intercepted locally and never sent to Claude.
 
-### 2. Lean Context Injection
-`background.js` is asked for a lean payload. It reads the tree from IndexedDB, scores nodes against the new prompt using TF-IDF cosine similarity, picks the top 2, and assembles a replacement payload with compressed context instead of full history.
+| Command | What it does |
+|---|---|
+| `/cp` | Opens the status popup programmatically. |
+| `/cp-tree` | Toggles the D3 graph sidebar panel. |
+| `/cp-status` | Prints live token stats as a chat message. |
+| `/cp-skip` | Skips compression for the next message only. |
+| `/cp-pause` | Pauses ALL compression until resumed. |
+| `/cp-resume` | Resumes compression. |
+| `/cp-reset` | Clears the context tree for the current conversation. |
+| `/cp-export` | Downloads the current conversation tree as a JSON file. |
+| `/cp-mode deep` | Sets context injection depth to 3 nodes. |
+| `/cp-mode light` | Sets context injection depth to 1 node. |
+| `/cp-help` | Prints all commands as a system message in chat. |
 
-### 3. Post-Response Compression
-The response stream is cloned and watched for completion. Once Claude finishes responding, the full user + assistant exchange is sent to the Anthropic API for compression into a ~70 token summary node, which is saved to IndexedDB.
+---
 
-### 4. Linked Tree
-Each node stores: compressed summary, keywords, parent node ID, raw vs compressed token counts, and conversation ID. This forms a linked tree that grows with your conversation but stays lean.
+## Architecture
+
+ContextPilot is built upon 4 architectural layers, combining 4 open-source approaches into one extension:
+
+| Layer | Source | What it does |
+|---|---|---|
+| **Display** | claude-counter (she-llac) | Live HUD for tokens, session/weekly bars, cache timer. |
+| **Commands** | get-shit-done pattern | Local `/cp` slash commands intercepted from chat input. |
+| **Compression** | ContextPilot original | Fetch intercept, lean payload injection, background compression. |
+| **Graph panel** | code-review-graph (tirth8205)| D3.js sidebar visualizing the live prompt tree. |
 
 ---
 
 ## Privacy
 
-- All data is stored in your browser's IndexedDB (local, private)
-- The only external call is to `api.anthropic.com` for compression
-- Your Anthropic API key never leaves your machine except to authenticate with Anthropic
-- No tracking, no analytics, no external servers
+- All data is stored completely locally in your browser's IndexedDB.
+- The ONLY external call made is to `api.anthropic.com` for the compression logic.
+- Your Anthropic API key is stored securely in `chrome.storage.local` and never leaves your machine.
+- No analytics, telemetry, or tracking servers of any kind.
 
 ---
 
-## Limitations
+## Credits
 
-- Claude's API endpoint format may change. If interception stops working, check the `CLAUDE_COMPLETION_ENDPOINT` regex in `content_script.js`
-- Compression quality depends on Haiku. For very technical conversations, some nuance may be lost in the summary — treat it as lossy-but-useful
-- The extension does not currently work on mobile Chrome
-
----
-
-## Roadmap
-
-- [ ] Visual tree explorer in the popup
-- [ ] Per-conversation token usage timeline chart
-- [ ] Manual node editing (let users fix bad compressions)
-- [ ] Export/import tree data
-- [ ] Firefox support
-
----
-
-## Contributing
-
-PRs welcome. Please follow the commit format used in the project:
-
-```
-feat: add keyword extractor with TF-IDF scoring
-fix: handle SSE stream completion edge case
-refactor: split context_builder into smaller functions
-docs: update README with API key setup steps
-```
-
----
+This project stands on the shoulders of incredible open-source work:
+- Display layer and tokenizer adapted from [claude-counter](https://github.com/she-llac/claude-counter) by she-llac.
+- Slash command design pattern adapted from [get-shit-done](https://github.com/gsd-build/get-shit-done) by gsd-build.
+- Graph visualization sidebar adapted from [code-review-graph](https://github.com/tirth8205/code-review-graph) by tirth8205.
 
 ## License
 
-MIT — do whatever you want with it.
-
----
-
-## Author
-
-Built by [YOUR_NAME](https://github.com/YOUR_USERNAME)
-
-Inspired by the frustration of watching a 5-hour timer tick down after a great conversation with Claude.
+MIT
