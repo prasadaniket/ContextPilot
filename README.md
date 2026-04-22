@@ -56,7 +56,7 @@ Savings: 96%
 
 Install the extension locally in just 3 steps:
 
-1. Download **[context-pilot-v1.0.0.zip](https://github.com/prasadaniket/ContextPilot/raw/main/context-pilot-v1.0.0.zip)** directly.
+1. Download **[context-pilot-v1.0.0.zip](https://github.com/prasadaniket/ContextPilot/releases/latest/download/context-pilot-v1.0.0.zip)** directly.
 2. Go to `chrome://extensions` in Chrome and toggle **Developer mode** (top right corner).
 3. **Drag and drop** the downloaded zip file onto the extensions page.
 
