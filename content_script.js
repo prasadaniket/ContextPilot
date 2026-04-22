@@ -273,17 +273,19 @@ function injectHUD() {
   const style = document.createElement('style');
   style.textContent = `
     #cp-hud {
-      position:fixed; bottom:0; left:0; right:0; z-index:9999;
+      position:fixed; bottom:100px; left:50%; transform:translateX(-50%); z-index:9999;
       display:flex; align-items:center; flex-wrap:wrap; gap:0;
-      padding:4px 14px;
-      background:rgba(255,255,255,0.93);
-      backdrop-filter:blur(10px);
-      border-top:0.5px solid rgba(0,0,0,0.1);
+      padding:6px 16px;
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(0,0,0,0.1);
+      border-radius:24px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.12);
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      font-size:11px; color:#666; user-select:none; line-height:1;
+      font-size:12px; color:#444; user-select:none; line-height:1;
     }
     @media(prefers-color-scheme:dark){
-      #cp-hud{background:rgba(26,26,24,0.93);border-color:rgba(255,255,255,0.1);color:#999;}
+      #cp-hud{background:rgba(30,30,30,0.95);border-color:rgba(255,255,255,0.1);color:#bbb;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
     }
     .cp-cell{display:flex;align-items:center;gap:4px;padding:3px 10px;border-right:0.5px solid rgba(0,0,0,0.1);}
     .cp-cell:last-child{border-right:none;}
@@ -469,4 +471,9 @@ injectHUD();
 watchNavigation();
 refreshCompressionStats();
 
-console.log(`${LOG} v1.0.0 loaded — display (claude-counter) + compression (ContextPilot) active`);
+// Auto-open tree panel to utilize empty screen space
+import(chrome.runtime.getURL('graph/tree_panel.js'))
+  .then(module => module.openPanel())
+  .catch(err => console.error('[ContextPilot] Failed to auto-load tree panel:', err));
+
+console.log(`${LOG} v1.0.1 loaded — display (claude-counter) + compression (ContextPilot) active`);

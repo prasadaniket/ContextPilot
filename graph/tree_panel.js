@@ -100,55 +100,56 @@ function createPanel() {
     @media (prefers-color-scheme: dark) {
       #cp-sidebar { background: #1c1c1a; border-color: rgba(255,255,255,0.1); }
     }
-    .cp-sb-header {
+    .cp-ph {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px;
+      padding: 10px 14px;
       border-bottom: 0.5px solid rgba(0,0,0,0.1);
       background: var(--color-background-primary, white);
     }
-    .cp-sb-title { font-size: 12px; font-weight: 600; color: var(--color-text-primary, #1a1a1a); }
-    .cp-sb-badge {
-      font-size: 10px; padding: 2px 7px; border-radius: 20px;
-      background: #EEEDFE; color: #3C3489; font-weight: 500;
+    .cp-ph h3 { font-size: 13px; font-weight: 500; color: var(--color-text-primary, #1a1a1a); margin: 0; }
+    .cp-badges { display: flex; gap: 6px; }
+    .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .badge-teal { background: #E1F5EE; color: #085041; }
+    .badge-purple { background: #EEEDFE; color: #3C3489; }
+    @media(prefers-color-scheme: dark) {
+      .badge-teal { background: #04342C; color: #9FE1CB; }
+      .badge-purple { background: #26215C; color: #CECBF6; }
     }
     .cp-sb-close {
       width: 20px; height: 20px; border-radius: 50%;
       background: none; border: none; cursor: pointer;
       color: var(--color-text-secondary, #666); font-size: 14px;
       display: flex; align-items: center; justify-content: center;
+      margin-left: 4px;
     }
     .cp-sb-close:hover { background: rgba(0,0,0,0.06); }
-    #cp-d3-area { flex: 1; overflow: hidden; }
-    .cp-sb-legend {
-      display: flex; gap: 10px; padding: 6px 12px;
-      border-top: 0.5px solid rgba(0,0,0,0.07);
-      border-bottom: 0.5px solid rgba(0,0,0,0.07);
-    }
-    .cp-leg { display: flex; align-items: center; gap: 3px; font-size: 9px; color: var(--color-text-secondary, #666); }
-    .cp-dot { width: 7px; height: 7px; border-radius: 50%; }
-    #cp-node-list { overflow-y: auto; padding: 8px; max-height: 180px; }
-    .cp-node-item {
-      display: flex; align-items: flex-start; gap: 6px;
-      padding: 5px 6px; border-radius: 5px; margin-bottom: 4px;
+    #cp-d3-area { flex: 1; overflow: hidden; position: relative; background: var(--color-background-primary, white); }
+    .cp-legend {
+      display: flex; gap: 14px; padding: 8px 14px;
+      border-top: 0.5px solid rgba(0,0,0,0.1);
+      border-bottom: 0.5px solid rgba(0,0,0,0.1);
       background: var(--color-background-primary, white);
-      border: 0.5px solid rgba(0,0,0,0.07);
-      cursor: pointer;
     }
-    .cp-node-item:hover { border-color: #534AB7; }
-    .cp-node-item.cp-active { border-color: #534AB7; background: #EEEDFE; }
-    @media (prefers-color-scheme: dark) { .cp-node-item.cp-active { background: #26215C; } }
-    .cp-node-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
-    .cp-node-body { flex: 1; overflow: hidden; }
-    .cp-node-title { font-size: 10px; font-weight: 500; color: var(--color-text-primary, #1a1a1a); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cp-node-meta { font-size: 9px; color: var(--color-text-secondary, #666); margin-top: 1px; }
-    .cp-node-tok { font-size: 9px; color: var(--color-text-secondary, #666); white-space: nowrap; flex-shrink: 0; }
+    .leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--color-text-secondary, #666); }
+    .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .cp-nodes { overflow-y: auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; max-height: 220px; }
+    .node-row {
+      display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px;
+      background: var(--color-background-primary, white);
+      border: 0.5px solid rgba(0,0,0,0.1); cursor: pointer;
+    }
+    .node-row:hover { border-color: #534AB7; }
+    .active-ring { box-shadow: 0 0 0 2px #534AB7; border-color: transparent; }
+    .node-circle { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .node-text { flex: 1; overflow: hidden; }
+    .node-title { font-size: 11px; font-weight: 500; color: var(--color-text-primary, #1a1a1a); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .node-sub { font-size: 10px; color: var(--color-text-secondary, #666); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .node-tok { font-size: 10px; color: var(--color-text-secondary, #666); white-space: nowrap; }
     .cp-tooltip {
       position: absolute; pointer-events: none;
       background: var(--color-background-primary, white);
-      border: 0.5px solid rgba(0,0,0,0.12);
-      border-radius: 6px; padding: 6px 8px;
-      font-size: 10px; max-width: 200px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 0.5px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 6px 8px;
+      font-size: 10px; max-width: 200px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       display: none; z-index: 10000;
     }
   `;
@@ -157,18 +158,23 @@ function createPanel() {
   panelEl = document.createElement('div');
   panelEl.id = 'cp-sidebar';
   panelEl.innerHTML = `
-    <div class="cp-sb-header">
-      <span class="cp-sb-title">Context tree</span>
-      <span class="cp-sb-badge" id="cp-sb-badge">0 nodes</span>
-      <button class="cp-sb-close" id="cp-sb-close" title="Close">×</button>
+    <div class="cp-ph">
+      <h3>Context tree</h3>
+      <div style="display:flex;align-items:center;">
+        <div class="cp-badges">
+          <span class="badge badge-purple" id="cp-sb-badge">0 nodes</span>
+          <span class="badge badge-teal" id="cp-sb-savings">0%</span>
+        </div>
+        <button class="cp-sb-close" id="cp-sb-close" title="Close">×</button>
+      </div>
     </div>
     <div id="cp-d3-area"></div>
-    <div class="cp-sb-legend">
-      <div class="cp-leg"><div class="cp-dot" style="background:#534AB7"></div>active path</div>
-      <div class="cp-leg"><div class="cp-dot" style="background:#1D9E75"></div>stored</div>
-      <div class="cp-leg"><div class="cp-dot" style="background:#BA7517"></div>current</div>
+    <div class="cp-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#534AB7;"></div> active path</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75;"></div> stored</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#BA7517;"></div> current</div>
     </div>
-    <div id="cp-node-list"></div>
+    <div class="cp-nodes" id="cp-node-list"></div>
     <div class="cp-tooltip" id="cp-tooltip"></div>
   `;
 
@@ -302,14 +308,6 @@ function renderD3Graph(nodes, edges, activeSet) {
   });
 }
 
-/**
- * renderNodeList
- * --------------
- * Renders the scrollable node list below the graph.
- *
- * @param {object[]} nodes
- * @param {Set}      activeSet
- */
 function renderNodeList(nodes, activeSet) {
   const list = document.getElementById('cp-node-list');
   if (!list) return;
@@ -327,14 +325,13 @@ function renderNodeList(nodes, activeSet) {
     const saved = (n.rawTokenEstimate || 0) - (n.compressedTokenEstimate || 0);
 
     return `
-      <div class="cp-node-item${isActive ? ' cp-active' : ''}">
-        <div class="cp-node-dot" style="background:${color}"></div>
-        <div class="cp-node-body">
-          <div class="cp-node-title">Turn ${(n.turnIndex ?? 0) + 1}</div>
-          <div class="cp-node-meta">${preview}...</div>
-          ${isActive ? '<div class="cp-node-meta" style="color:#534AB7">will be injected</div>' : ''}
+      <div class="node-row ${isActive ? 'active-ring' : ''}" style="${!isActive ? 'opacity:0.7;' : ''}">
+        <div class="node-circle" style="background:${color}"></div>
+        <div class="node-text">
+          <div class="node-title">P${(n.turnIndex ?? 0) + 1} — ${preview}...</div>
+          <div class="node-sub">${isActive ? 'relevance match — will be injected' : 'stored context'}</div>
         </div>
-        <div class="cp-node-tok">↓${saved}tk</div>
+        <div class="node-tok">↓${saved}tk</div>
       </div>`;
   }).join('');
 }
@@ -350,6 +347,23 @@ function buildEdgesFromNodes(nodes) {
 function updateBadge(count) {
   const badge = document.getElementById('cp-sb-badge');
   if (badge) badge.textContent = `${count} node${count !== 1 ? 's' : ''}`;
+  
+  const savings = document.getElementById('cp-sb-savings');
+  if (savings) {
+    // Calculate total savings %
+    let raw = 0, comp = 0;
+    currentNodes.forEach(n => {
+      raw += n.rawTokenEstimate || 0;
+      comp += n.compressedTokenEstimate || 0;
+    });
+    if (raw > 0) {
+      const pct = Math.round(((raw - comp) / raw) * 100);
+      savings.textContent = `↓${pct}%`;
+      savings.style.display = 'inline';
+    } else {
+      savings.style.display = 'none';
+    }
+  }
 }
 
 function adjustMainLayout(sidebarOpen) {
