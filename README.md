@@ -24,6 +24,23 @@ Every message WITH ContextPilot:
 Savings: 96%
 ```
 
+### How the Context Tree Grows
+
+```mermaid
+graph TD
+    classDef node fill:#1D9E75,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef active fill:#534AB7,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef prompt fill:#BA7517,stroke:#fff,stroke-width:2px,color:#fff;
+
+    A[Node 1: User asks for React setup]:::node --> B[Node 2: Claude provides Vite template]:::node
+    B --> C[Node 3: User asks about routing]:::active
+    C --> D[Node 4: Claude explains React Router]:::node
+    D --> E[Node 5: User asks for Auth integration]:::active
+    
+    E -. "TF-IDF matching extracts\nmost relevant nodes" .-> F((Current Prompt:\n"How do I protect the route?")):::prompt
+    C -. "Injects Node 3" .-> F
+```
+
 ---
 
 ## Features
@@ -96,6 +113,29 @@ ContextPilot is built upon 4 architectural layers, combining 4 open-source appro
 | **Commands** | get-shit-done pattern | Local `/cp` slash commands intercepted from chat input. |
 | **Compression** | ContextPilot original | Fetch intercept, lean payload injection, background compression. |
 | **Graph panel** | code-review-graph (tirth8205)| D3.js sidebar visualizing the live prompt tree. |
+
+### System Architecture Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User (claude.ai)
+    participant C as Content Script
+    participant B as Background Worker
+    participant A as Anthropic API
+    participant DB as IndexedDB
+
+    U->>C: Types message & hits Send
+    C->>B: Intercept fetch, ask for lean context
+    B->>DB: Query context tree & TF-IDF match
+    DB-->>B: Return top 2 nodes
+    B-->>C: Inject lean payload
+    C->>A: Send request (~200 tokens)
+    A-->>U: Claude responds (SSE Stream)
+    C->>B: Stream done, compress exchange
+    B->>A: Send raw exchange for summarization
+    A-->>B: Return ~70 token summary
+    B->>DB: Save new node to tree
+```
 
 ---
 
