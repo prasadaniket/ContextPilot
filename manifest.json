@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ContextPilot",
-  "version": "2.0.0",
-  "description": "Save tokens. Stay in conversations. Live usage bars, compression tree, and /cp commands for claude.ai.",
+  "version": "3.0.0",
+  "description": "Save tokens. Stay in conversations. Live usage bars, blast-radius graph, quality scoring, and /cp commands for claude.ai.",
   "permissions": [
     "storage",
     "activeTab",
@@ -16,25 +16,25 @@
     "https://console.anthropic.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "dist/background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["vendor/gpt-tokenizer.js", "vendor/d3.min.js", "content_script.js"],
+      "js": ["vendor/gpt-tokenizer.js", "vendor/d3.min.js", "dist/content_script.js"],
       "run_at": "document_idle",
       "all_frames": false
     },
     {
       "matches": ["https://console.anthropic.com/*"],
-      "js": ["content_script.js"],
+      "js": ["dist/content_script.js"],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["vendor/*", "icons/*"],
+      "resources": ["vendor/*", "icons/*", "dist/*"],
       "matches": ["https://claude.ai/*", "https://console.anthropic.com/*"]
     }
   ],

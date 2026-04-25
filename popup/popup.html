@@ -12,13 +12,13 @@
       <div class="logo-mark">CP</div>
       <div class="logo-text">
         <div class="logo-name">ContextPilot</div>
-        <div class="logo-ver">v2.0.0</div>
+        <div class="logo-ver">v3.0.0</div>
       </div>
     </div>
     <div class="status-pill" id="statusPill">active</div>
   </header>
 
-  <!-- ── Section 1: Live usage ── -->
+  <!-- Live usage -->
   <div class="section-label">Live usage</div>
   <div class="row-cards">
     <div class="card">
@@ -46,10 +46,10 @@
   <div class="full-card cache-row">
     <span class="card-label">Cache timer</span>
     <span class="cache-val" id="cacheTimer">—</span>
-    <div class="cache-sub">stays cached for 5 min after last message</div>
+    <div class="cache-sub">stays cached 5 min after last message</div>
   </div>
 
-  <!-- ── Section 2: Compression savings ── -->
+  <!-- Compression savings -->
   <div class="divider"></div>
   <div class="section-label">Compression savings</div>
   <div class="row-cards">
@@ -62,35 +62,52 @@
       <div class="card-val purple" id="compressionRatio">—</div>
     </div>
     <div class="card">
-      <div class="card-label">Nodes</div>
-      <div class="card-val" id="totalNodes">—</div>
+      <div class="card-label">Avg quality</div>
+      <div class="card-val purple" id="avgQuality">—</div>
     </div>
     <div class="card">
-      <div class="card-label">Chats</div>
-      <div class="card-val" id="chatCount">—</div>
+      <div class="card-label">Nodes / Chats</div>
+      <div class="card-val" id="totalNodes">—</div>
+      <div class="card-sub" id="chatCount"></div>
     </div>
   </div>
 
-  <!-- ── Section 3: API key settings ── -->
+  <!-- Search -->
+  <div class="divider"></div>
+  <div class="section-label">Search compressions</div>
+  <div class="search-block">
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search past compressions…" autocomplete="off"/>
+      <select id="dateFilter" class="date-filter">
+        <option value="all">All time</option>
+        <option value="today">Today</option>
+        <option value="week">This week</option>
+        <option value="month">This month</option>
+      </select>
+    </div>
+    <div id="searchResults" class="search-results"></div>
+  </div>
+
+  <!-- API key -->
   <div class="divider"></div>
   <div class="section-label">Compression API key</div>
   <div class="settings-block">
     <div class="api-row">
-      <input type="password" id="apiInput" class="api-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"/>
+      <input type="password" id="apiInput" class="api-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"/>
       <button class="btn-save" id="saveBtn">Save</button>
     </div>
     <button class="btn-grab" id="grabBtn">✳ Get key automatically</button>
     <div class="api-status" id="apiStatus"></div>
-    <div class="api-hint">Used only for compression (Haiku model — very low cost). Stored locally by Chrome.</div>
+    <div class="api-hint">Used only for compression (Haiku model). Stored locally by Chrome.</div>
   </div>
 
-  <!-- ── Footer ── -->
+  <!-- Footer -->
   <div class="divider"></div>
   <div class="footer">
     <button class="link-btn" id="clearBtn">Clear all data</button>
     <a class="link-btn" href="https://github.com/prasadaniket/ContextPilot" target="_blank">GitHub</a>
   </div>
 
-  <script src="popup.js"></script>
+  <script src="../dist/popup.js"></script>
 </body>
 </html>

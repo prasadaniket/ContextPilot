@@ -15,6 +15,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -23,20 +34,15 @@ jobs:
         run: |
           zip -r context-pilot-${{ steps.version.outputs.VERSION }}.zip \
             manifest.json \
-            background.js \
-            content_script.js \
-            core/ \
-            commands/ \
-            graph/ \
-            features/ \
+            dist/ \
             vendor/ \
             popup/ \
             icons/ \
             --exclude "*.md" \
-            --exclude "CURSOR_PROMPT.md" \
             --exclude ".git/*" \
             --exclude ".github/*" \
-            --exclude "node_modules/*"
+            --exclude "node_modules/*" \
+            --exclude "src/*"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
