@@ -1,28 +1,12 @@
-/**
- * ContextPilot v1.0 — popup.js
- * --------------------------------
- * Reads tree stats, renders dashboard.
- *
- *
- * GitHub: https://github.com/prasadaniket/ContextPilot
- */
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([loadCompressionStats(), loadUsageData(), loadApiKeyStatus()]);
   bindEvents();
 });
 
-// ─── Compression stats (ContextPilot) ────────────────────────────────────────
-
-/**
- * loadCompressionStats
- * --------------------
- * Fetches tree stats from background.js and renders the compression section.
- */
 async function loadCompressionStats() {
   try {
     const stats = await msg({ type: 'GET_STATS' });
     if (!stats || stats.error) return;
-
     set('tokensSaved',      formatK(stats.tokensSaved));
     set('compressionRatio', stats.compressionRatio > 0 ? `${stats.compressionRatio}%` : '—');
     set('totalNodes',       formatK(stats.totalNodes));
@@ -32,60 +16,44 @@ async function loadCompressionStats() {
   }
 }
 
-// ─── Live usage data (claude-counter layer) ───────────────────────────────────
-
-/**
- * loadUsageData
- * -------------
- * Reads live usage state written to chrome.storage.local by content_script.js.
- * The content script writes state after each SSE stream so the popup can read it.
- * Falls back to querying Claude's /usage endpoint directly if storage is empty.
- */
 async function loadUsageData() {
   try {
     const stored = await chrome.storage.local.get([
       'cp_session_usage', 'cp_weekly_usage',
-      'cp_session_reset', 'cp_weekly_reset',
-      'cp_token_count',   'cp_cache_expires'
+      'cp_session_reset_ms', 'cp_weekly_reset_ms',
+      'cp_token_count', 'cp_cache_expires'
     ]);
 
-    // Token count + bar
     const tokens = stored.cp_token_count ?? 0;
     set('tokenCount', `${formatK(tokens)} / 200K tokens`);
     setBar('tokenBar', Math.min(100, Math.round((tokens / 200_000) * 100)));
 
-    // Session usage
     if (stored.cp_session_usage != null) {
       const p = Math.round(stored.cp_session_usage * 100);
       set('sessionPct', `${p}%`);
       setBar('sessionBar', p);
-      if (stored.cp_session_reset > 0) {
-        set('sessionReset', `resets in ${formatMs(stored.cp_session_reset)}`);
+      if (stored.cp_session_reset_ms > 0) {
+        set('sessionReset', `resets in ${formatMs(stored.cp_session_reset_ms)}`);
       }
     }
 
-    // Weekly usage
     if (stored.cp_weekly_usage != null) {
       const p = Math.round(stored.cp_weekly_usage * 100);
       set('weeklyPct', `${p}%`);
       setBar('weeklyBar', p);
-      if (stored.cp_weekly_reset > 0) {
-        set('weeklyReset', `resets in ${formatMs(stored.cp_weekly_reset)}`);
+      if (stored.cp_weekly_reset_ms > 0) {
+        set('weeklyReset', `resets in ${formatMs(stored.cp_weekly_reset_ms)}`);
       }
     }
 
-    // Cache timer
     if (stored.cp_cache_expires) {
       const rem = stored.cp_cache_expires - Date.now();
       set('cacheTimer', rem > 0 ? formatMs(rem) : 'expired');
     }
-
   } catch (err) {
     console.warn('[ContextPilot Popup] loadUsageData:', err.message);
   }
 }
-
-// ─── API key ──────────────────────────────────────────────────────────────────
 
 async function loadApiKeyStatus() {
   try {
@@ -93,20 +61,17 @@ async function loadApiKeyStatus() {
     const input = document.getElementById('apiInput');
     if (isSet) {
       input.placeholder = maskedKey;
-      showStatus('API key is set — full compression active', 'ok');
+      showStatus('API key set — full compression active', 'ok');
     } else {
       showStatus('No API key — using basic compression fallback', '');
     }
   } catch { /* ignore */ }
 }
 
-// ─── Events ───────────────────────────────────────────────────────────────────
-
 function bindEvents() {
   document.getElementById('saveBtn').addEventListener('click', async () => {
     const key = document.getElementById('apiInput').value.trim();
     if (!key) { showStatus('Enter your API key first', 'err'); return; }
-
     const result = await msg({ type: 'SAVE_API_KEY', payload: { apiKey: key } });
     if (result?.success) {
       document.getElementById('apiInput').value = '';
@@ -115,6 +80,30 @@ function bindEvents() {
     } else {
       showStatus(result?.error ?? 'Failed to save', 'err');
     }
+  });
+
+  document.getElementById('grabBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('grabBtn');
+    btn.textContent = 'Opening console…';
+    btn.disabled = true;
+    try {
+      const result = await msg({ type: 'GRAB_API_KEY' });
+      if (result?.success) {
+        showStatus('Check the Anthropic console tab — key will be saved automatically', 'ok');
+      } else {
+        showStatus(result?.error ?? 'Could not open console', 'err');
+        btn.textContent = '✳ Get key automatically';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      showStatus('Error: ' + e.message, 'err');
+      btn.textContent = '✳ Get key automatically';
+      btn.disabled = false;
+    }
+    setTimeout(() => {
+      btn.textContent = '✳ Get key automatically';
+      btn.disabled = false;
+    }, 8000);
   });
 
   document.getElementById('clearBtn').addEventListener('click', async () => {
@@ -126,8 +115,6 @@ function bindEvents() {
     }
   });
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function msg(message) {
   return new Promise((resolve, reject) => {

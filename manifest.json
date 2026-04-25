@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "ContextPilot",
-  "version": "1.0.2",
-  "description": "Token counter + compression + live graph panel for claude.ai. Stay in long conversations without hitting limits.",
+  "version": "2.0.0",
+  "description": "Save tokens. Stay in conversations. Live usage bars, compression tree, and /cp commands for claude.ai.",
   "permissions": [
-    "storage", "activeTab", "scripting",
-    "cookies", "alarms", "tabs"
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "alarms"
   ],
   "host_permissions": [
     "https://claude.ai/*",
@@ -13,25 +16,26 @@
     "https://console.anthropic.com/*"
   ],
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["vendor/gpt-tokenizer.js", "content_script.js"],
-      "run_at": "document_idle"
+      "js": ["vendor/gpt-tokenizer.js", "vendor/d3.min.js", "content_script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
     },
     {
       "matches": ["https://console.anthropic.com/*"],
-      "js": ["features/api_key_grabber.js"],
-      "run_at": "document_idle"
+      "js": ["content_script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["commands/*.js", "graph/*.js", "core/*.js"],
-      "matches": ["https://claude.ai/*"]
+      "resources": ["vendor/*", "icons/*"],
+      "matches": ["https://claude.ai/*", "https://console.anthropic.com/*"]
     }
   ],
   "action": {
@@ -40,7 +44,8 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "default_title": "ContextPilot"
   },
   "icons": {
     "16": "icons/icon16.png",

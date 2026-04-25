@@ -161,6 +161,18 @@ body {
 .api-status.ok  { color: var(--teal);   }
 .api-status.err { color: var(--danger); }
 .api-hint { font-size: 10px; color: var(--hint); margin-top: 3px; line-height: 1.5; }
+.btn-grab {
+  width: 100%; height: 28px; margin-bottom: 5px;
+  background: transparent;
+  border: 0.5px solid #C4622D;
+  border-radius: 6px;
+  color: #C4622D;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.btn-grab:hover { background: #C4622D; color: #fff; }
+.btn-grab:disabled { opacity: .5; cursor: default; }
+.bar-purple { background: var(--purple); }
 
 /* Footer */
 .footer {

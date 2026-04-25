@@ -12,13 +12,13 @@
       <div class="logo-mark">CP</div>
       <div class="logo-text">
         <div class="logo-name">ContextPilot</div>
-        <div class="logo-ver">v1.0.0</div>
+        <div class="logo-ver">v2.0.0</div>
       </div>
     </div>
     <div class="status-pill" id="statusPill">active</div>
   </header>
 
-  <!-- ── Section 1: Live usage (from claude-counter) ── -->
+  <!-- ── Section 1: Live usage ── -->
   <div class="section-label">Live usage</div>
   <div class="row-cards">
     <div class="card">
@@ -40,16 +40,16 @@
       <span class="card-label">Context window</span>
       <span class="card-sub" id="tokenCount">— / 200K tokens</span>
     </div>
-    <div class="bar-track"><div class="bar-fill bar-teal" id="tokenBar"></div></div>
+    <div class="bar-track"><div class="bar-fill bar-purple" id="tokenBar"></div></div>
   </div>
 
   <div class="full-card cache-row">
     <span class="card-label">Cache timer</span>
     <span class="cache-val" id="cacheTimer">—</span>
-    <div class="cache-sub">conversation stays cached for 5 min after last message</div>
+    <div class="cache-sub">stays cached for 5 min after last message</div>
   </div>
 
-  <!-- ── Section 2: Compression savings (from ContextPilot) ── -->
+  <!-- ── Section 2: Compression savings ── -->
   <div class="divider"></div>
   <div class="section-label">Compression savings</div>
   <div class="row-cards">
@@ -79,6 +79,7 @@
       <input type="password" id="apiInput" class="api-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"/>
       <button class="btn-save" id="saveBtn">Save</button>
     </div>
+    <button class="btn-grab" id="grabBtn">✳ Get key automatically</button>
     <div class="api-status" id="apiStatus"></div>
     <div class="api-hint">Used only for compression (Haiku model — very low cost). Stored locally by Chrome.</div>
   </div>
