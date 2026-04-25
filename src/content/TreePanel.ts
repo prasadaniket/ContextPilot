@@ -47,9 +47,9 @@ export class TreePanel {
       </div>
       <div class="cp-sb-graph" id="cp-sb-graph"></div>
       <div class="cp-sb-legend">
-        <div class="cp-leg"><div class="cp-leg-dot" style="background:#7F77DD;"></div>high impact</div>
-        <div class="cp-leg"><div class="cp-leg-dot" style="background:#534AB7;"></div>active</div>
-        <div class="cp-leg"><div class="cp-leg-dot" style="background:#BA7517;"></div>current</div>
+        <div class="cp-leg"><div class="cp-leg-dot" style="background:#4a4f42;"></div>high impact</div>
+        <div class="cp-leg"><div class="cp-leg-dot" style="background:#6b6e63;"></div>active</div>
+        <div class="cp-leg"><div class="cp-leg-dot" style="background:#7a7860;"></div>current</div>
       </div>
       <div class="cp-sb-list" id="cp-sb-list"></div>
     `
@@ -97,19 +97,19 @@ export class TreePanel {
       .force('center',    d3.forceCenter(W / 2, H / 2))
       .force('collision', d3.forceCollide().radius(18))
 
-    // Links
+    // Links — smoke palette
     const link = svg.append('g').selectAll('line').data(links).join('line')
       .attr('stroke', (l: unknown) => {
         const d = l as D3Link
-        return (activeSet.has(d.source.id) && activeSet.has(d.target.id)) ? '#534AB7' : '#AFA9EC'
+        return (activeSet.has(d.source.id) && activeSet.has(d.target.id)) ? '#4a4f42' : '#bfbcb0'
       })
       .attr('stroke-width', (l: unknown) => {
         const d = l as D3Link
         return (activeSet.has(d.source.id) && activeSet.has(d.target.id)) ? 2 : 1
       })
-      .attr('stroke-opacity', 0.7)
+      .attr('stroke-opacity', 0.6)
 
-    // Nodes — sized by blastRadius, colored by purple gradient
+    // Nodes — sized by blastRadius, smoke intensity by impact
     const node = svg.append('g').selectAll('g').data(d3Nodes).join('g').attr('cursor', 'pointer')
 
     node.append('circle')
@@ -119,18 +119,20 @@ export class TreePanel {
       })
       .attr('fill', (d: unknown) => {
         const n = d as D3Node
-        if (n.isCurrent) return '#BA7517'
-        if (activeSet.has(n.id)) return '#534AB7'
-        // Blast radius drives purple intensity
-        return typeof d3.interpolatePurples === 'function'
-          ? d3.interpolatePurples(0.3 + (n.blastRadius ?? 0) * 0.7)
-          : '#1D9E75'
+        if (n.isCurrent) return '#7a7860'
+        if (activeSet.has(n.id)) return '#4a4f42'
+        // Blend from sky-blue to smoke based on blast radius
+        const t = 0.25 + (n.blastRadius ?? 0) * 0.6
+        const r = Math.round(204 - t * (204 - 74))
+        const g = Math.round(201 - t * (201 - 79))
+        const b = Math.round(190 - t * (190 - 66))
+        return `rgb(${r},${g},${b})`
       })
-      .attr('stroke', (d: unknown) => activeSet.has((d as D3Node).id) ? '#534AB7' : '#AFA9EC')
+      .attr('stroke', (d: unknown) => activeSet.has((d as D3Node).id) ? '#4a4f42' : '#9a9d95')
       .attr('stroke-width', (d: unknown) => activeSet.has((d as D3Node).id) ? 1.5 : 0.5)
       .attr('fill-opacity', (d: unknown) => {
         const n = d as D3Node
-        return activeSet.size > 0 && !activeSet.has(n.id) ? 0.45 : 1
+        return activeSet.size > 0 && !activeSet.has(n.id) ? 0.55 : 1
       })
 
     node.append('text')
